@@ -1,55 +1,40 @@
 steps:
-- name: Checkout
-  uses: actions/checkout@v4
+  - name: Checkout
+    uses: actions/checkout@v4
 
-- name: Set up JDK 11
-  uses: actions/setup-java@v4
-  with:
-    distribution: temurin
-    java-version: 11
+  - id: setup-java
+    name: Set up JDK 11
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: 11
 
-- name: Install Android SDK tools
-  run: |
-    sudo mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-    sudo chown -R $USER:$USER $ANDROID_SDK_ROOT
-    cd $ANDROID_SDK_ROOT
-    wget -q https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O cmdline-tools.zip
-    unzip -q cmdline-tools.zip -d cmdline-tools
-    mv cmdline-tools/cmdline-tools cmdline-tools/latest
-    yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+  - name: Install Android SDK tools
+    run: |
+      sudo mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+      sudo chown -R $USER:$USER $ANDROID_SDK_ROOT
+      cd $ANDROID_SDK_ROOT
+      wget -q https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O cmdline-tools.zip
+      unzip -q cmdline-tools.zip -d cmdline-tools
+      mv cmdline-tools/cmdline-tools cmdline-tools/latest
+      yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-- name: Accept licenses
-  run: |
-    yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses --sdk_root=$ANDROID_SDK_ROOT
+  - name: Accept licenses
+    run: |
+      yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses --sdk_root=$ANDROID_SDK_ROOT
 
-- name: Make Gradle wrapper executable (if present)
-  run: |
-    if [ -f ./gradlew ]; then chmod +x ./gradlew; fi
+  - name: Make Gradle wrapper executable (if present)
+    run: |
+      if [ -f ./gradlew ]; then chmod +x ./gradlew; fi
 
-- name: Build debug APK
-  run: |
-    ./gradlew assembleDebug --no-daemon
-  env:
-    JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+  - name: Build debug APK
+    run: |
+      ./gradlew assembleDebug --no-daemon
+    env:
+      JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
 
-- name: Upload APK artifact
-  uses: actions/upload-artifact@v4
-  with:
-    name: app-debug-apk
-    path: app/build/outputs/apk/debug/*.apk
-    # Duration after which artifact will expire in days. 0 means using default retention.
-Minimum 1 day. Maximum 90 days unless changed from the repository settings page.
-
-    retention-days: # optional
-    # The level of compression for Zlib to be applied to the artifact archive. The value can range from 0 to 9: - 0: No compression - 1: Best speed - 6: Default compression (same as GNU Gzip) - 9: Best compression Higher levels will result in better compression, but will take longer to complete. For large files that are not easily compressed, a value of 0 is recommended for significantly faster uploads.
-
-    compression-level: # optional, default is 6
-    # If true, an artifact with a matching name will be deleted before a new one is uploaded. If false, the action will fail if an artifact for the given name already exists. Does not fail if the artifact does not exist.
-
-    overwrite: # optional, default is false
-    # If true, hidden files will be included in the artifact. If false, hidden files will be excluded from the artifact.
-
-    include-hidden-files: # optional, default is false
-    # If true, the artifact will be archived (zipped) before uploading. If false, the artifact will be uploaded as-is without archiving. When `archive` is `false`, only a single file can be uploaded. The name of the file will be used as the artifact name (ignoring the `name` parameter).
-
-    archive: # optional, default is true
+  - name: Upload APK artifact
+    uses: actions/upload-artifact@v4
+    with:
+      name: app-debug-apk
+      path: app/build/outputs/apk/debug/*.apk
